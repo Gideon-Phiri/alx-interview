@@ -1,37 +1,52 @@
 #!/usr/bin/python3
+"""
+Function that determines if a given data set represents a valid UTF-8 encoding
+"""
+
+
 def validUTF8(data):
-    # Count the number of bytes left to validate as continuation bytes
+    """
+    Check if data represents valid UTF-8 encoding.
+    Args:
+        data (list): List of integers where each integer represents 1 byte.
+    Returns:
+        bool: True if valid UTF-8, False otherwise.
+    """
+    # Number of bytes remaining to be validated as continuation bytes
     num_bytes = 0
 
-    # Masks to check most significant bits
-    mask_1_byte = 0b10000000  # 1-byte mask (ASCII characters)
-    mask_n_bytes = 0b11100000  # Mask for n-byte sequences
-    mask_2_bytes = 0b11000000  # 2-byte mask
-    mask_3_bytes = 0b11110000  # 3-byte mask
-    mask_4_bytes = 0b11111000  # 4-byte mask
-    mask_continuation = 0b11000000  # Continuation byte mask
-    mask_continuation_check = 0b10000000  # Check for continuation bytes
+    # Masks for checking different byte types
+    mask_1_byte = 0b10000000  # Mask to check if byte starts with 0 (ASCII)
+    mask_2_bytes = 0b11100000  # Mask for leading byte of 2-byte character
+    mask_3_bytes = 0b11110000  # Mask for leading byte of 3-byte character
+    mask_4_bytes = 0b11111000  # Mask for leading byte of 4-byte character
+    mask_continuation = 0b11000000  # Mask for cont byte (must be 10xxxxxx)
 
     for byte in data:
-        byte = byte & 0xFF  # Only care about the last 8 bits
+        byte = byte & 0xFF  # Ensure we're working with only 8 bits (1 byte)
 
-        # If num_bytes is 0, we're expecting a new character
+        # If we're expecting continuation bytes
         if num_bytes == 0:
-            if (byte & mask_1_byte) == 0:  # 1-byte character (ASCII)
+            # Check for 1-byte character (ASCII range)
+            if (byte & mask_1_byte) == 0:
                 continue
-            elif (byte & mask_2_bytes) == 0b11000000:  # 2-byte character
+            # Check for 2-byte character
+            elif (byte & mask_2_bytes) == 0b11000000:
                 num_bytes = 1
-            elif (byte & mask_3_bytes) == 0b11100000:  # 3-byte character
+            # Check for 3-byte character
+            elif (byte & mask_3_bytes) == 0b11100000:
                 num_bytes = 2
-            elif (byte & mask_4_bytes) == 0b11110000:  # 4-byte character
+            # Check for 4-byte character
+            elif (byte & mask_4_bytes) == 0b11110000:
                 num_bytes = 3
             else:
-                return False  # Invalid leading byte
+                # Invalid leading byte
+                return False
         else:
-            # Check if it's a valid continuation byte
-            if (byte & mask_continuation) != mask_continuation_check:
+            # Check that byte is a valid continuation byte (10xxxxxx)
+            if (byte & mask_continuation) != 0b10000000:
                 return False
             num_bytes -= 1
 
-    # If num_bytes is not zero, we have incomplete characters left
+    # If we have leftover continuation bytes that haven't been matched
     return num_bytes == 0

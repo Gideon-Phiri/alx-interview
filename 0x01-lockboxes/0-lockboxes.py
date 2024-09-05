@@ -1,37 +1,33 @@
-
-ckboxes.py
-This module contains the function canUnlockAll that determines if all boxes 
-in a list of boxes can be opened starting from the first box.
+#!/usr/bin/python3
 """
+0-lockboxes.py
+This module contains the canUnlockAll function.
+"""
+
 
 def canUnlockAll(boxes):
     """
     Determines if all boxes can be unlocked.
-    
-    :param boxes: List of lists where each sublist represents keys inside a box.
-                  A key with the same number as a box opens that box.
-    :return: True if all boxes can be unlocked, otherwise False.
+
+    Args:
+        boxes (list):
+           - A list of lists, where each list contains keys to other boxes.
+
+    Returns:
+        bool: True if all boxes can be unlocked, False otherwise.
     """
-    # A set to keep track of all opened boxes
-    opened_boxes = set()
-    
-    # Initialize the stack with the first box (box 0 is always open)
-    stack = [0]
+    n = len(boxes)  # Number of boxes
+    unlocked = {0}  # Set of unlocked boxes, starting with box 0
+    stack = boxes[0]  # Start with keys from the first box
 
+    # Process the stack to unlock boxes
     while stack:
-        # Pop the last box from the stack
-        current_box = stack.pop()
+        key = stack.pop()  # Take a key from the stack
 
-        # If this box has not been opened yet
-        if current_box not in opened_boxes:
-            # Mark the current box as opened
-            opened_boxes.add(current_box)
+        # If the key unlocks a new box
+        if key < n and key not in unlocked:
+            unlocked.add(key)  # Mark the box as unlocked
+            stack.extend(boxes[key])  # Add keys from the newly unlocked box
 
-            # Add keys found in the current box to the stack
-            for key in boxes[current_box]:
-                # Ensure the key corresponds to a valid box that hasn't been opened
-                if key < len(boxes) and key not in opened_boxes:
-                    stack.append(key)
-
-    # If the number of opened boxes equals the total number of boxes, return True
-    return len(opened_boxes) == len(boxes)
+    # If all boxes are unlocked, return True; else return False
+    return len(unlocked) == n
